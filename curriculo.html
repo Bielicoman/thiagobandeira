@@ -195,17 +195,34 @@
     .cv-pill { font-family:var(--font-m); font-size:.48rem; letter-spacing:1.5px; text-transform:uppercase; padding:.3rem .75rem; border-radius:99px; border:1px solid rgba(59,126,248,0.25); color:var(--text-muted); background:rgba(59,126,248,0.05); }
 
     /* Projects grid */
-    .cv-projects { display:flex; flex-direction:column; gap:.9rem; }
-    .cv-project-item {
-      display:flex; align-items:flex-start; gap:1rem;
-      padding:.9rem 1rem; border-radius:10px;
-      background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05);
-      transition:border-color .3s, background .3s;
+    .cv-projects {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .8rem;
     }
-    .cv-project-item:hover { border-color:rgba(59,126,248,0.2); background:rgba(59,126,248,0.03); }
+    .cv-project-item {
+      display: flex;
+      flex-direction: column;
+      gap: .6rem;
+      padding: .8rem;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.05);
+      transition: border-color .3s, background .3s, transform .3s;
+    }
+    .cv-project-item:hover {
+      border-color: rgba(59,126,248,0.2);
+      background: rgba(59,126,248,0.04);
+      transform: translateY(-2px);
+    }
     .cv-project-thumb {
-      width:56px; height:40px; border-radius:6px; overflow:hidden; flex-shrink:0;
-      background:rgba(59,126,248,0.1); border:1px solid rgba(59,126,248,0.15);
+      width: 100%;
+      height: 90px;
+      border-radius: 6px;
+      overflow: hidden;
+      flex-shrink: 0;
+      background: rgba(59,126,248,0.1);
+      border: 1px solid rgba(59,126,248,0.15);
     }
     .cv-project-thumb img { width:100%; height:100%; object-fit:cover; }
     .cv-project-title { font-family:var(--font-d); font-size:.85rem; font-weight:700; margin-bottom:.15rem; }
@@ -218,8 +235,10 @@
     .cv-tsub,
     .cv-tdate,
     .cv-skill-name,
-    .cv-pill,
-    .cv-project-role,
+    .cv-project-title { font-family:var(--font-m); font-weight:600; }
+
+    .cv-left { position: sticky; top: 2rem; align-self: start; }
+    .cv-right { }
     .cv-back,
     .cv-btn,
     .cv-contact-badge {
@@ -236,18 +255,14 @@
     .cv-back, .cv-btn { font-size: 0.65rem !important; }
     .cv-contact-badge { font-size: 0.65rem !important; }
 
-    /* Print button */
+    /* Print & Export Optimization */
     @media print {
-      @page { margin: 0; size: auto; }
-      body { 
-        background: #01060f !important; 
-        color: #f0f4ff !important;
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-      }
-      .cv-nav, .ambient, #cursor { display:none !important; }
-      .cv-card { background: rgba(255,255,255,0.03) !important; border:1px solid rgba(255,255,255,0.1) !important; }
-      .cv-wrap { width: 100% !important; max-width: none !important; margin: 0 !important; }
+      @page { margin: 1cm; size: auto; }
+      body { background: #01060f !important; color: #f0f4ff !important; }
+      .cv-nav, .ambient, #cursor, #theme-toggle-cv { display:none !important; }
+      .cv-wrap { width: 100% !important; max-width: none !important; margin: 0 !important; box-shadow: none !important; }
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
     }
   </style>
 </head>
@@ -264,7 +279,7 @@
   <!-- NAV -->
   <nav class="cv-nav">
     <div class="cv-nav-left">
-      <a href="index.html" class="cv-logo">TB<span>.</span>RAW</a>
+      <a href="index.html" class="cv-logo">THIAGO <span>BANDEIRA</span></a>
       <a href="index.html" class="cv-back">
         <svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
         Início
@@ -275,12 +290,35 @@
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
         Tema
       </button>
-      <button class="cv-btn cv-btn-primary" onclick="window.print()">
-        <i class="fas fa-download" style="margin-right: 8px;"></i>
+      <button class="cv-btn cv-btn-primary" id="download-cv">
+        <i class="fas fa-file-pdf" style="margin-right: 8px;"></i>
         BAIXAR CURRÍCULO
       </button>
     </div>
   </nav>
+
+  <!-- PDF GENERATION SCRIPT -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script>
+    document.getElementById('download-cv').addEventListener('click', function() {
+        const element = document.querySelector('.cv-wrap');
+        const opt = {
+            margin:       0.5,
+            filename:     'THIAGO_BANDEIRA_CURRICULO.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
+            jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+        
+        // Hide elements that shouldn't be in the PDF (like the cursor or nav if they get caught)
+        const btn = this;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right: 8px;"></i> GERANDO...';
+        
+        html2pdf().set(opt).from(element).save().then(() => {
+            btn.innerHTML = '<i class="fas fa-file-pdf" style="margin-right: 8px;"></i> BAIXAR CURRÍCULO';
+        });
+    });
+  </script>
 
   <div class="cv-wrap">
 
@@ -292,9 +330,11 @@
       </div>
       <div>
         <h1 class="cv-name">THIAGO <em>BANDEIRA</em></h1>
+        <div class="cv-info">Branding & Audiovisual · 24 anos</div>
         <div class="cv-role-badge">
           DIRETOR DE FOTOGRAFIA &bull; PRODUTOR AUDIOVISUAL
         </div>
+      </div>
         <div class="cv-contact-row">
           <div class="cv-contact-badge">
             <i class="fas fa-phone"></i>
@@ -314,7 +354,7 @@
           </div>
           <div class="cv-contact-badge">
             <i class="fas fa-birthday-cake"></i>
-            <span>21/02/2002 · 23 anos</span>
+            <span>21/02/2002 · 24 anos</span>
           </div>
         </div>
       </div>
@@ -329,11 +369,9 @@
           <div class="cv-card-content">
             <div class="cv-section-label">Sobre</div>
             <p class="cv-about-text">
-              Filmmaker e <strong>Diretor de Fotografia</strong> com paixão por narrativas visuais de alto impacto.
-              Natural do Espírito Santo, atualmente estudando <strong>Rádio e Televisão no UNASP — Engenheiro Coelho</strong>.
-              Atua nas áreas de direção, produção e operação de câmera, transformando ideias em experiências
-              visuais que conectam e impactam. Acredita que o sucesso é fruto de persistência diária e
-              paixão genuína pelo audiovisual.
+              Filmmaker e <strong>Diretor de Fotografia</strong> focado na criação de narrativas visuais de alto impacto. 
+              Natural do Espírito Santo, com trajetória consolidada no estado de <strong>São Paulo, onde cursa Rádio e Televisão no UNASP, Engenheiro Coelho</strong>. 
+              Atua com excelência em direção de fotografia, produção e operação de câmera, transformando conceitos em experiências visuais memoráveis.
             </p>
           </div>
         </div>
@@ -347,8 +385,8 @@
                 <div class="cv-tline"><div class="cv-tline-dot"></div><div class="cv-tline-bar"></div></div>
                 <div>
                   <div class="cv-ttitle">Rádio e Televisão</div>
-                  <div class="cv-tsub">UNASP — Engenheiro Coelho, SP</div>
-                  <div class="cv-tdesc">Cursando — Graduação em produção audiovisual, fotografia, edição e comunicação.</div>
+                  <div class="cv-tsub">UNASP, Engenheiro Coelho, SP</div>
+                  <div class="cv-tdesc">Cursando. Graduação com foco em produção audiovisual, direção de fotografia e comunicação.</div>
                   <div class="cv-tdate">2023 · Em andamento</div>
                 </div>
               </div>
@@ -356,7 +394,7 @@
                 <div class="cv-tline"><div class="cv-tline-dot"></div><div class="cv-tline-bar"></div></div>
                 <div>
                   <div class="cv-ttitle">Ensino Médio Completo</div>
-                  <div class="cv-tsub">Teófilo Paulino — ES</div>
+                  <div class="cv-tsub">Teófilo Paulino, ES</div>
                   <div class="cv-tdate">Concluído</div>
                 </div>
               </div>
@@ -393,21 +431,16 @@
                 <div class="cv-skill-bar"><div class="cv-skill-fill" data-pct="93"></div></div>
               </div>
               <div>
-                <div class="cv-skill-name">Iluminação (Gaffer) <span>91%</span></div>
+                <div class="cv-skill-name">Iluminação Cinematográfica <span>91%</span></div>
                 <div class="cv-skill-bar"><div class="cv-skill-fill" data-pct="91"></div></div>
-              </div>
-              <div>
-                <div class="cv-skill-name">Produção Audiovisual <span>90%</span></div>
-                <div class="cv-skill-bar"><div class="cv-skill-fill" data-pct="90"></div></div>
-              </div>
-
-              <div>
-                <div class="cv-skill-name">Captação de Áudio <span>82%</span></div>
-                <div class="cv-skill-bar"><div class="cv-skill-fill" data-pct="82"></div></div>
               </div>
               <div>
                 <div class="cv-skill-name">Documentário <span>84%</span></div>
                 <div class="cv-skill-bar"><div class="cv-skill-fill" data-pct="84"></div></div>
+              </div>
+              <div>
+                <div class="cv-skill-name">Direção Audiovisual <span>85%</span></div>
+                <div class="cv-skill-bar"><div class="cv-skill-fill" data-pct="85"></div></div>
               </div>
             </div>
             <div class="cv-section-label" style="margin-top:1.4rem">Competências</div>
@@ -422,12 +455,7 @@
           </div>
         </div>
 
-      </div><!-- /LEFT -->
-
-      <!-- RIGHT COLUMN -->
-      <div class="cv-right">
-
-        <!-- EXPERIÊNCIA PROFISSIONAL -->
+        <!-- EXPERIÊNCIA PROFISSIONAL (Moved for balance) -->
         <div class="cv-card">
           <div class="cv-card-content">
             <div class="cv-section-label">Experiência Profissional</div>
@@ -463,97 +491,295 @@
           </div>
         </div>
 
+      </div><!-- /LEFT -->
+
+      <!-- RIGHT COLUMN -->
+      <div class="cv-right">
+
+
+
         <!-- PROJETOS SELECIONADOS -->
         <div class="cv-card">
           <div class="cv-card-content">
             <div class="cv-section-label">Projetos Selecionados</div>
             <div class="cv-projects">
+              <!-- 1 -->
               <div class="cv-project-item">
-                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/efa_PSKMHLk/mqdefault.jpg" alt="O Oráculo" loading="lazy"></div>
-                <div>
-                  <div class="cv-project-title">O Oráculo</div>
-                  <div class="cv-project-role">Diretor · Dir. de Fotografia</div>
-                  <div class="cv-project-client">Reality Show · Califórnia Dreams</div>
-                </div>
-              </div>
-              <div class="cv-project-item">
-                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/D8IE251bp_E/mqdefault.jpg" alt="WELL" loading="lazy"></div>
-                <div>
-                  <div class="cv-project-title">Documentário WELL</div>
-                  <div class="cv-project-role">Dir. Agência · Dir. Fotografia · Câmera</div>
-                  <div class="cv-project-client">Branded Documentary · WELL</div>
-                </div>
-              </div>
-              <div class="cv-project-item">
-                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/Mul19Lfeo7Y/mqdefault.jpg" alt="Bárbara" loading="lazy"></div>
-                <div>
-                  <div class="cv-project-title">Bárbara</div>
-                  <div class="cv-project-role">Diretor · Câmera · Produtor Técnico · Ator</div>
-                  <div class="cv-project-client">Curta-Metragem · Califórnia Dreams · 2024</div>
-                </div>
-              </div>
-              <div class="cv-project-item">
-                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/NwesZCYbSx0/mqdefault.jpg" alt="Cicatrizes" loading="lazy"></div>
-                <div>
-                  <div class="cv-project-title">Cicatrizes</div>
-                  <div class="cv-project-role">Câmera · Dir. Produção · Iluminação</div>
-                  <div class="cv-project-client">Documentário · Califórnia Dreams · 2024</div>
-                </div>
-              </div>
-              <div class="cv-project-item">
-                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/WeBx8Ewkm4I/mqdefault.jpg" alt="Meu Respirar" loading="lazy"></div>
+                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/WeBx8Ewkm4I/mqdefault.jpg" alt="Meu Respirar"></div>
                 <div>
                   <div class="cv-project-title">Meu Respirar</div>
-                  <div class="cv-project-role">Dir. de Fotografia · Câmera</div>
-                  <div class="cv-project-client">Videoclipe · Gabriella Stehling</div>
+                  <div class="cv-project-role">Dir. Fotografia | Op. Câmera</div>
+                  <div class="cv-project-client">Gabriella Stehling</div>
                 </div>
               </div>
+              <!-- 2 -->
               <div class="cv-project-item">
-                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/D43qNYNIIOA/mqdefault.jpg" alt="O Melhor de Mim" loading="lazy"></div>
+                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/rQlMRuub6vo/mqdefault.jpg" alt="Jeová Jireh"></div>
                 <div>
-                  <div class="cv-project-title">O Melhor de Mim</div>
-                  <div class="cv-project-role">Dir. Fotografia · Produtor Técnico</div>
-                  <div class="cv-project-client">Videoclipe · Grupo Versos</div>
+                  <div class="cv-project-title">Jeová Jireh</div>
+                  <div class="cv-project-role">Dir. Fotografia | Op. Câmera</div>
+                  <div class="cv-project-client">Gabriella Stehling</div>
                 </div>
               </div>
+              <!-- 3 -->
               <div class="cv-project-item">
-                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/DAglqbQTK4c/mqdefault.jpg" alt="Lembra" loading="lazy"></div>
+                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/DXB_N4-r-H8/mqdefault.jpg" alt="Aula Magna 2026"></div>
+                <div>
+                  <div class="cv-project-title">Aula Magna 2026</div>
+                  <div class="cv-project-role">Op. de Câmera</div>
+                  <div class="cv-project-client">UNASP</div>
+                </div>
+              </div>
+              <!-- 4 -->
+              <div class="cv-project-item">
+                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/RJpcS7dLJPQ/mqdefault.jpg" alt="Sabores do Brasil"></div>
+                <div>
+                  <div class="cv-project-title">Sabores do Brasil</div>
+                  <div class="cv-project-role">Op. de Câmera</div>
+                  <div class="cv-project-client">Santa Helena Alimentos</div>
+                </div>
+              </div>
+              <!-- 5 -->
+              <div class="cv-project-item">
+                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/h5vbvGte3oM/mqdefault.jpg" alt="O Peso das Palavras"></div>
+                <div>
+                  <div class="cv-project-title">O Peso das Palavras</div>
+                  <div class="cv-project-role">Op. Câmera | Produção</div>
+                  <div class="cv-project-client">Entre Aspas</div>
+                </div>
+              </div>
+              <!-- 6 -->
+              <div class="cv-project-item">
+                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/5FxSxY7iMo0/mqdefault.jpg" alt="Culto de Sexta"></div>
+                <div>
+                  <div class="cv-project-title">Culto de Sexta UNASP</div>
+                  <div class="cv-project-role">Dir. de Imagem | Coord. Técnico</div>
+                  <div class="cv-project-client">UNASP</div>
+                </div>
+              </div>
+              <!-- 7 -->
+              <div class="cv-project-item">
+                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/708nWQhWdfE/mqdefault.jpg" alt="Formaturas UNASP"></div>
+                <div>
+                  <div class="cv-project-title">Formaturas UNASP EC 2025</div>
+                  <div class="cv-project-role">Op. de Câmera</div>
+                  <div class="cv-project-client">UNASP EC</div>
+                </div>
+              </div>
+              <!-- 8 -->
+              <div class="cv-project-item">
+                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/m93qBGgcTsI/mqdefault.jpg" alt="Nunca É Tarde"></div>
+                <div>
+                  <div class="cv-project-title">Nunca É Tarde</div>
+                  <div class="cv-project-role">Gaffer</div>
+                  <div class="cv-project-client">Novo Tom</div>
+                </div>
+              </div>
+              <!-- 9 -->
+              <div class="cv-project-item">
+                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/-homFYaw7z8/mqdefault.jpg" alt="Santificado"></div>
+                <div>
+                  <div class="cv-project-title">Santificado</div>
+                  <div class="cv-project-role">Gaffer</div>
+                  <div class="cv-project-client">Novo Tom</div>
+                </div>
+              </div>
+              <!-- 10 -->
+              <div class="cv-project-item">
+                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/g73nHqXJY-M/mqdefault.jpg" alt="Arte Na Mesa #06"></div>
+                <div>
+                  <div class="cv-project-title">Arte Na Mesa #06</div>
+                  <div class="cv-project-role">Op. de Câmera</div>
+                  <div class="cv-project-client">UNASP</div>
+                </div>
+              </div>
+              <!-- 11 -->
+              <div class="cv-project-item">
+                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/vP7nbYS_DgY/mqdefault.jpg" alt="Arte Na Mesa #05"></div>
+                <div>
+                  <div class="cv-project-title">Arte Na Mesa #05</div>
+                  <div class="cv-project-role">Op. de Câmera</div>
+                  <div class="cv-project-client">UNASP</div>
+                </div>
+              </div>
+              <!-- 12 -->
+              <div class="cv-project-item">
+                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/yh_ZZTQN3-I/mqdefault.jpg" alt="Arte Na Mesa #02"></div>
+                <div>
+                  <div class="cv-project-title">Arte Na Mesa #02</div>
+                  <div class="cv-project-role">Op. de Câmera</div>
+                  <div class="cv-project-client">UNASP</div>
+                </div>
+              </div>
+              <!-- 13 -->
+              <div class="cv-project-item">
+                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/wl8Lc5n71jQ/mqdefault.jpg" alt="Uma Pátria"></div>
+                <div>
+                  <div class="cv-project-title">Uma Pátria</div>
+                  <div class="cv-project-role">Op. de Câmera</div>
+                  <div class="cv-project-client">Coro de Música</div>
+                </div>
+              </div>
+              <!-- 14 -->
+              <div class="cv-project-item">
+                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/vptKdSzSw0Y/mqdefault.jpg" alt="NEle"></div>
+                <div>
+                  <div class="cv-project-title">NEle</div>
+                  <div class="cv-project-role">Op. de Câmera</div>
+                  <div class="cv-project-client">Coral Canção Jovem</div>
+                </div>
+              </div>
+              <!-- 15 -->
+              <div class="cv-project-item">
+                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/THiRhQtPTKw/mqdefault.jpg" alt="As Estrelas"></div>
+                <div>
+                  <div class="cv-project-title">As Estrelas</div>
+                  <div class="cv-project-role">Op. de Câmera</div>
+                  <div class="cv-project-client">Coral Canção Jovem</div>
+                </div>
+              </div>
+              <!-- 16 -->
+              <div class="cv-project-item">
+                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/GevwTHA0SDA/mqdefault.jpg" alt="Oh, Que Esperança"></div>
+                <div>
+                  <div class="cv-project-title">Oh, Que Esperança</div>
+                  <div class="cv-project-role">Assist. de Câmera</div>
+                  <div class="cv-project-client">Orquestra Sinfônica</div>
+                </div>
+              </div>
+              <!-- 17 -->
+              <div class="cv-project-item">
+                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/hYmDMIVQ4Og/mqdefault.jpg" alt="Oh, Fronte"></div>
+                <div>
+                  <div class="cv-project-title">Oh, Fronte Ensanguentada</div>
+                  <div class="cv-project-role">Assist. de Câmera</div>
+                  <div class="cv-project-client">Orquestra Sinfônica</div>
+                </div>
+              </div>
+              <!-- 18 -->
+              <div class="cv-project-item">
+                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/LPSdRoq1EJs/mqdefault.jpg" alt="Bem Junto a Cristo"></div>
+                <div>
+                  <div class="cv-project-title">Bem Junto a Cristo</div>
+                  <div class="cv-project-role">Assist. de Câmera</div>
+                  <div class="cv-project-client">Orquestra Sinfônica</div>
+                </div>
+              </div>
+              <!-- 19 -->
+              <div class="cv-project-item">
+                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/0gXPzkrl0cA/mqdefault.jpg" alt="Herói da Fé"></div>
+                <div>
+                  <div class="cv-project-title">Herói da Fé</div>
+                  <div class="cv-project-role">Produção de Palco</div>
+                  <div class="cv-project-client">UNASP 75 Anos</div>
+                </div>
+              </div>
+              <!-- 20 -->
+              <div class="cv-project-item">
+                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/WKTqguahTMU/mqdefault.jpg" alt="A Terra Santa"></div>
+                <div>
+                  <div class="cv-project-title">A Terra Santa</div>
+                  <div class="cv-project-role">Dir. Fotografia | Op. Câmera</div>
+                  <div class="cv-project-client">Arqueologia Bíblica</div>
+                </div>
+              </div>
+              <!-- 21 -->
+              <div class="cv-project-item">
+                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/p6SIYQ2c2Bw/mqdefault.jpg" alt="Bárbara"></div>
+                <div>
+                  <div class="cv-project-title">Bárbara</div>
+                  <div class="cv-project-role">Diretor | Op. Câmera</div>
+                  <div class="cv-project-client">Curta-Metragem</div>
+                </div>
+              </div>
+              <!-- 22 -->
+              <div class="cv-project-item">
+                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/yrkck9BhKqo/mqdefault.jpg" alt="Tu És"></div>
+                <div>
+                  <div class="cv-project-title">Tu És</div>
+                  <div class="cv-project-role">Dir. Fotografia | Op. Câmera</div>
+                  <div class="cv-project-client">Produção Audiovisual</div>
+                </div>
+              </div>
+              <!-- 23 -->
+              <div class="cv-project-item">
+                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/b1ufVsXLPt8/mqdefault.jpg" alt="Ele Reviveu"></div>
+                <div>
+                  <div class="cv-project-title">Ele Reviveu</div>
+                  <div class="cv-project-role">Diretor de Produção</div>
+                  <div class="cv-project-client">Produção Audiovisual</div>
+                </div>
+              </div>
+              <!-- 24 -->
+              <div class="cv-project-item">
+                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/DAglqbQTK4c/mqdefault.jpg" alt="Lembra"></div>
                 <div>
                   <div class="cv-project-title">Lembra</div>
                   <div class="cv-project-role">Produtor</div>
-                  <div class="cv-project-client">Videoclipe · Kati Carvalho feat. Communion</div>
+                  <div class="cv-project-client">Kati Carvalho</div>
                 </div>
               </div>
+              <!-- 25 -->
               <div class="cv-project-item">
-                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/rQlMRuub6vo/mqdefault.jpg" alt="Jeová Jireh" loading="lazy"></div>
+                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/D43qNYNIIOA/mqdefault.jpg" alt="O Melhor de Mim"></div>
                 <div>
-                  <div class="cv-project-title">Jeová Jireh</div>
-                  <div class="cv-project-role">Dir. de Fotografia · Câmera</div>
-                  <div class="cv-project-client">Videoclipe · Gabriella Stehling</div>
+                  <div class="cv-project-title">O Melhor de Mim</div>
+                  <div class="cv-project-role">Dir. Fotografia | Produtor</div>
+                  <div class="cv-project-client">Grupo Versos</div>
                 </div>
               </div>
+              <!-- 26 -->
               <div class="cv-project-item">
-                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/Mdkzm7v2vc8/mqdefault.jpg" alt="VT Engenharia" loading="lazy"></div>
+                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/RRfgyZBCGn4/mqdefault.jpg" alt="Nosso Jeito de Amar"></div>
                 <div>
-                  <div class="cv-project-title">VT Engenharia</div>
-                  <div class="cv-project-role">Produtor · Operador de Câmera · Captação de Áudio</div>
+                  <div class="cv-project-title">Nosso Jeito de Amar</div>
+                  <div class="cv-project-role">Op. Câmera | Produtor</div>
+                  <div class="cv-project-client">Música</div>
+                </div>
+              </div>
+              <!-- 27 -->
+              <div class="cv-project-item">
+                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/efa_PSKMHLk/mqdefault.jpg" alt="O Oráculo"></div>
+                <div>
+                  <div class="cv-project-title">O Oráculo</div>
+                  <div class="cv-project-role">Diretor | Dir. Fotografia</div>
+                  <div class="cv-project-client">Reality Show</div>
+                </div>
+              </div>
+              <!-- 28 -->
+              <div class="cv-project-item">
+                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/D8IE251bp_E/mqdefault.jpg" alt="Documentário WELL"></div>
+                <div>
+                  <div class="cv-project-title">Documentário WELL</div>
+                  <div class="cv-project-role">Dir. Fotografia</div>
+                  <div class="cv-project-client">Branded Doc</div>
+                </div>
+              </div>
+              <!-- 29 -->
+              <div class="cv-project-item">
+                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/Mul19Lfeo7Y/mqdefault.jpg" alt="Saudade"></div>
+                <div>
+                  <div class="cv-project-title">Saudade</div>
+                  <div class="cv-project-role">Op. de Câmera</div>
+                  <div class="cv-project-client">Curta-Metragem</div>
+                </div>
+              </div>
+              <!-- 30 -->
+              <div class="cv-project-item">
+                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/NwesZCYbSx0/mqdefault.jpg" alt="Cicatrizes"></div>
+                <div>
+                  <div class="cv-project-title">Cicatrizes</div>
+                  <div class="cv-project-role">Op. Câmera | Dir. Produção</div>
+                  <div class="cv-project-client">Documentário</div>
+                </div>
+              </div>
+              <!-- 31 -->
+              <div class="cv-project-item">
+                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/Mdkzm7v2vc8/mqdefault.jpg" alt="VT Engenharia"></div>
+                <div>
+                  <div class="cv-project-title">VT 10 anos de Engenharia</div>
+                  <div class="cv-project-role">Dir. de Fotografia</div>
                   <div class="cv-project-client">Produção Corporativa</div>
-                </div>
-              </div>
-              <div class="cv-project-item">
-                <div class="cv-project-thumb" style="display:flex;align-items:center;justify-content:center;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(59,126,248,0.5)" stroke-width="1.5"><rect x="2" y="7" width="20" height="15" rx="2"/><polyline points="17 2 12 7 7 2"/></svg></div>
-                <div>
-                  <div class="cv-project-title">Formaturas UNASP 2023 &amp; 2025</div>
-                  <div class="cv-project-role">Diretor de Imagem e Corte</div>
-                  <div class="cv-project-client">Produção ao Vivo · UNASP EC</div>
-                </div>
-              </div>
-              <div class="cv-project-item">
-                <div class="cv-project-thumb" style="display:flex;align-items:center;justify-content:center;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(59,126,248,0.5)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg></div>
-                <div>
-                  <div class="cv-project-title">+30 Cultos &amp; Eventos UNASP EC</div>
-                  <div class="cv-project-role">Operador de Câmera · Dir. de Fotografia</div>
-                  <div class="cv-project-client">Produção ao Vivo · Recitais · Orquestras · Coral</div>
                 </div>
               </div>
             </div>
@@ -564,6 +790,12 @@
     </div>
 
   </div><!-- /cv-wrap -->
+
+  <footer style="padding: 4rem 2rem; text-align: center; border-top: 1px solid rgba(255,255,255,0.05);">
+    <div style="font-family: var(--font-d); font-size: 1.2rem; font-weight: 700; letter-spacing: 2px;">
+      THIAGO <span style="color: var(--p1); font-style: italic;">BANDEIRA</span>
+    </div>
+  </footer>
 
   <script>
     // Theme sync

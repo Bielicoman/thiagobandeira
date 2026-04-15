@@ -25,8 +25,8 @@ document.addEventListener('DOMContentLoaded', () => {
            angle, and specular shine follow
     ───────────────────────────────────────────── */
     const TILT_MAX    = 8;     // max degrees
-    const TILT_SPRING = 0.10;  // lerp factor (stiffness)
-    const TILT_DAMP   = 0.85;  // velocity damping
+    const TILT_SPRING = 0.15;  // Mais rígido (mais rápido)
+    const TILT_DAMP   = 0.82;  // Menos "arrasto", mais direto
 
     document.querySelectorAll('.pcard').forEach(card => {
         let targetX = 0, targetY = 0;
@@ -34,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let velX = 0, velY = 0;
         let rafId = null;
         let isHovered = false;
+        let sX = 50, sY = 50;
 
         const shineEl = card.querySelector('.pcard-shine');
 
@@ -44,56 +45,47 @@ document.addEventListener('DOMContentLoaded', () => {
             currentX += velX;
             currentY += velY;
 
-            card.style.setProperty('--tilt-x', `${currentX.toFixed(3)}deg`);
-            card.style.setProperty('--tilt-y', `${currentY.toFixed(3)}deg`);
-
-            // Gradient border angle — rotates to face the light
-            const angle = Math.atan2(currentX, -currentY) * (180 / Math.PI) + 135;
-            card.style.setProperty('--tilt-border-angle', `${angle.toFixed(1)}deg`);
+            // Batch style updates
+            card.style.transform = `perspective(1000px) rotateX(${currentX.toFixed(2)}deg) rotateY(${currentY.toFixed(2)}deg) scale3d(1.02, 1.02, 1.02)`;
+            
+            // Specular shine update in the same frame
+            if (shineEl) {
+                shineEl.style.background = `radial-gradient(ellipse 55% 45% at ${sX}% ${sY}%, rgba(255,255,255,0.13) 0%, rgba(255,255,255,0.04) 40%, transparent 70%)`;
+            }
 
             // Continue if still moving meaningfully
             if (isHovered || Math.abs(velX) > 0.01 || Math.abs(velY) > 0.01) {
                 rafId = requestAnimationFrame(animate);
             } else {
-                // Snap to rest
                 currentX = 0; currentY = 0;
-                card.style.setProperty('--tilt-x', '0deg');
-                card.style.setProperty('--tilt-y', '0deg');
-                card.style.setProperty('--tilt-border-angle', '135deg');
+                card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
                 rafId = null;
             }
         }
 
         card.addEventListener('mousemove', e => {
             const rect = card.getBoundingClientRect();
-            const cx = (e.clientX - rect.left) / rect.width  - 0.5; // -0.5 to +0.5
+            const cx = (e.clientX - rect.left) / rect.width  - 0.5;
             const cy = (e.clientY - rect.top)  / rect.height - 0.5;
 
             targetY =  cx * TILT_MAX * 2;
             targetX = -cy * TILT_MAX * 2;
 
-            // Update specular shine position
-            const shineX = ((e.clientX - rect.left) / rect.width  * 100).toFixed(1);
-            const shineY = ((e.clientY - rect.top)  / rect.height * 100).toFixed(1);
-            card.style.setProperty('--tilt-shine-x', `${shineX}%`);
-            card.style.setProperty('--tilt-shine-y', `${shineY}%`);
-            if (shineEl) {
-                shineEl.style.background = `radial-gradient(ellipse 55% 45% at ${shineX}% ${shineY}%, rgba(255,255,255,0.13) 0%, rgba(255,255,255,0.04) 40%, transparent 70%)`;
-            }
+            sX = ((e.clientX - rect.left) / rect.width  * 100).toFixed(1);
+            sY = ((e.clientY - rect.top)  / rect.height * 100).toFixed(1);
 
             if (!rafId) rafId = requestAnimationFrame(animate);
         });
 
         card.addEventListener('mouseenter', () => {
             isHovered = true;
-            card.style.transition = 'box-shadow 0.5s, filter 0.4s';
+            card.style.transition = 'box-shadow 0.3s, filter 0.3s';
             if (!rafId) rafId = requestAnimationFrame(animate);
         });
 
         card.addEventListener('mouseleave', () => {
             isHovered = false;
             targetX = 0; targetY = 0;
-            // Spring will naturally return to 0
             if (!rafId) rafId = requestAnimationFrame(animate);
         });
     });
@@ -121,29 +113,23 @@ document.addEventListener('DOMContentLoaded', () => {
         mouseX = e.clientX;
         mouseY = e.clientY;
 
-        // Mira (Dot) follows 1:1 instantly
+        // Mira (Dot) e Anel (Ring) seguem 1:1 instantaneamente com correção de centralização (-50%)
+        const posTransition = `translate3d(${mouseX}px, ${mouseY}px, 0) translate(-50%, -50%)`;
         if (dot) {
-            dot.style.left = `${mouseX}px`;
-            dot.style.top  = `${mouseY}px`;
+            dot.style.transform = posTransition;
+        }
+        if (ring) {
+            ring.style.transform = posTransition;
         }
 
-        // Liquid glass specular tracking on interactive elements
-        document.querySelectorAll('.pcard, .contact-glass-form, .social-pill, .btn-cv-premium').forEach(el => {
+        // Liquid glass specular tracking on interactive elements - Otimizado: apenas se estiver visível
+        const interactiveElements = document.querySelectorAll('.pcard:hover, .contact-glass-form:hover, .social-pill:hover, .btn-cv-premium:hover');
+        interactiveElements.forEach(el => {
             const r = el.getBoundingClientRect();
             el.style.setProperty('--mx', `${((e.clientX - r.left) / r.width  * 100).toFixed(1)}%`);
             el.style.setProperty('--my', `${((e.clientY - r.top)  / r.height * 100).toFixed(1)}%`);
         });
     });
-
-    (function lerpRing() {
-        ringX += (mouseX - ringX) * 0.15;
-        ringY += (mouseY - ringY) * 0.15;
-        if (ring) {
-            ring.style.left = `${ringX}px`;
-            ring.style.top  = `${ringY}px`;
-        }
-        requestAnimationFrame(lerpRing);
-    })();
 
     document.querySelectorAll('a, button, .pcard, .gitem, .social-pill').forEach(el => {
         el.addEventListener('mouseenter', () => document.body.classList.add('cursor-hover'));
@@ -228,31 +214,98 @@ document.addEventListener('DOMContentLoaded', () => {
     ───────────────────────────────────────────── */
 
     /* ─────────────────────────────────────────────
-       8. GALLERY IMAGE MODAL
+       8. GALLERY IMAGE MODAL — Functional Nav
     ───────────────────────────────────────────── */
-    const imgModal    = document.getElementById('imageModal');
-    const modalImg    = document.getElementById('modalImg');
-    const closeImgBtn = document.getElementById('closeImageModal');
-    // Bind clicks on ALL .gitem elements
-    document.querySelectorAll('.gitem').forEach(item => {
-        item.addEventListener('click', () => {
-            if (item.getAttribute('aria-hidden') === 'true') return; // skip duplicates
-            const img = item.querySelector('img');
-            if (!img || !imgModal) return;
+    
+    // ─────────────────────────────────────────────
+    // PORTFOLIO FILTER LOGIC
+    // ─────────────────────────────────────────────
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    const projectCards = document.querySelectorAll('.pcard-wrap');
+
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const filter = btn.getAttribute('data-filter');
+
+            // Update UI
+            filterBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            projectCards.forEach(card => {
+                const category = card.getAttribute('data-category');
+                
+                if (filter === 'all' || category === filter) {
+                    card.style.display = 'block';
+                    setTimeout(() => {
+                        card.style.opacity = '1';
+                        card.style.transform = 'scale(1)';
+                    }, 50);
+                } else {
+                    card.style.opacity = '0';
+                    card.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        card.style.display = 'none';
+                    }, 400);
+                }
+            });
+        });
+    });
+
+    const imgModal     = document.getElementById('imageModal');
+    const modalImg     = document.getElementById('modalImg');
+    const closeImgBtn  = document.getElementById('closeImageModal');
+    const imgPrev      = document.getElementById('imgPrev');
+    const imgNext      = document.getElementById('imgNext');
+    let currentImgIdx  = 0;
+    
+    // Filtramos apenas itens que não são clones do scroll infinito para evitar saltos
+    const galleryItems = Array.from(document.querySelectorAll('.gitem:not([aria-hidden="true"])'));
+
+    const updateModalImg = (idx) => {
+        const item = galleryItems[idx];
+        if (!item) return;
+        const img = item.querySelector('img');
+        if (!img) return;
+        
+        // Adiciona um fade simples na troca
+        modalImg.style.opacity = '0';
+        setTimeout(() => {
             modalImg.src = img.src;
             modalImg.alt = img.alt;
-            imgModal.classList.add('active');
+            modalImg.style.opacity = '1';
+        }, 150);
+        
+        currentImgIdx = idx;
+    };
+
+    galleryItems.forEach((item, idx) => {
+        item.addEventListener('click', () => {
+            updateModalImg(idx);
+            imgModal?.classList.add('active');
             document.body.style.overflow = 'hidden';
         });
     });
 
     const closeImg = () => {
         imgModal?.classList.remove('active');
-        if (modalImg) modalImg.src = '';
         document.body.style.overflow = '';
     };
+
     closeImgBtn?.addEventListener('click', closeImg);
     imgModal?.addEventListener('click', e => { if (e.target === imgModal) closeImg(); });
+
+    imgPrev?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        let nextIdx = currentImgIdx - 1;
+        if (nextIdx < 0) nextIdx = galleryItems.length - 1;
+        updateModalImg(nextIdx);
+    });
+
+    imgNext?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        let nextIdx = (currentImgIdx + 1) % galleryItems.length;
+        updateModalImg(nextIdx);
+    });
 
 
     /* ─────────────────────────────────────────────

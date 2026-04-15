@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>THIAGO BANDEIRA PORTFOLIO · CURRÍCULO</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100;200;300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    :root {
+      --bg: #000306; --bg2: #00060e;
+      --royal: #1a45c8; --royal-bright: #3b7ef8; --royal-dim: rgba(26,69,200,0.14);
+      --glass-bg: rgba(255,255,255,0.038); --glass-border: rgba(255,255,255,0.09);
+      --glass-top: rgba(255,255,255,0.22); --glass-shadow: 0 4px 6px rgba(0,0,0,0.3), 0 12px 40px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.10) inset;
+      --text: #f0f4ff; --text-muted: #6e82a8; --text-dim: #3d4f6b;
+      --font-d: 'Outfit',sans-serif; --font-b: 'Inter',sans-serif; --font-m: 'Inter',sans-serif;
+      --spring: cubic-bezier(0.16,1,0.3,1);
+    }
+    [data-theme="light"] {
+      --bg: #e0e8f5; --bg2: #d4dff0;
+      --glass-bg: rgba(0,20,60,0.04); --glass-border: rgba(0,20,60,0.10);
+      --glass-top: rgba(26,69,200,0.20); --glass-shadow: 0 4px 6px rgba(0,20,60,0.08), 0 12px 40px rgba(0,20,60,0.12), 0 1px 0 rgba(255,255,255,0.80) inset;
+      --text: #0d1b2a; --text-muted: #4a6080; --text-dim: #8a9bb0;
+    }
+    html { scroll-behavior:smooth; }
+    body {
+      font-family: var(--font-b); font-weight:300;
+      background: var(--bg); color: var(--text);
+      min-height:100vh; overflow-x:hidden;
+      -webkit-font-smoothing:antialiased;
+    }
+    ::-webkit-scrollbar { width:3px; }
+    ::-webkit-scrollbar-track { background:var(--bg); }
+    ::-webkit-scrollbar-thumb { background:var(--royal); border-radius:2px; }
+
+    /* Cursor Mira 1:1 + Ring Lerp */
+    #cursor { position:fixed; top:0; left:0; pointer-events:none; z-index:99999; }
+    .cursor-ring {
+      position:fixed; width:38px; height:38px; border:1.5px solid var(--royal-bright);
+      border-radius:50%; transform:translate(-50%,-50%); opacity:.5; transition:width .3s,height .3s;
+    }
+    .cursor-dot {
+      position:fixed; width:4px; height:4px; background:var(--royal-bright);
+      border-radius:50%; transform:translate(-50%,-50%); box-shadow:0 0 10px var(--royal-bright); z-index:100000;
+    }
+    .cursor-ring::before, .cursor-ring::after { content:''; position:absolute; background:var(--royal-bright); }
+    .cursor-ring::before { width:1px; height:6px; left:50%; top:-8px; transform:translateX(-50%); }
+    .cursor-ring::after { width:1px; height:6px; left:50%; bottom:-8px; transform:translateX(-50%); }
+    body.cursor-hover .cursor-ring { width:60px; height:60px; opacity:1; background:rgba(59,126,248,.05); }
+    body.cursor-click .cursor-ring { transform:translate(-50%,-50%) scale(.85); }
+
+    /* Ambient */
+    .ambient {
+      position:fixed; border-radius:50%; pointer-events:none; z-index:0;
+    }
+    .a1 { width:70vw; height:70vw; background:radial-gradient(circle,rgba(26,69,200,0.15) 0%,transparent 70%); top:-20%; right:-20%; filter:blur(120px); animation:aFloat 25s ease-in-out infinite alternate; }
+    .a2 { width:80vw; height:80vw; background:radial-gradient(circle,rgba(37,99,235,0.08) 0%,transparent 70%); bottom:-30%; left:-20%; filter:blur(140px); animation:aFloat 30s ease-in-out infinite alternate-reverse; }
+    @keyframes aFloat { 0%{transform:translate(0,0) scale(1)} 50%{transform:translate(60px,-40px) scale(1.1)} 100%{transform:translate(-30px,60px) scale(0.95)} }
+
+    /* Nav */
+    .cv-nav {
+      position:sticky; top:0; z-index:100;
+      display:flex; align-items:center; justify-content:space-between;
+      padding:.9rem 5%;
+      background: rgba(0,3,6,0.6);
+      backdrop-filter: blur(32px) saturate(180%);
+      -webkit-backdrop-filter: blur(32px) saturate(180%);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    [data-theme="light"] .cv-nav { background:rgba(220,232,248,0.75); border-bottom-color:rgba(26,69,200,0.1); }
+    .cv-nav-left { display:flex; align-items:center; gap:1rem; }
+    .cv-logo { font-family:var(--font-d); font-weight:800; font-size:.85rem; letter-spacing:3px; text-decoration:none; color:var(--text); }
+    .cv-logo span { color:var(--royal-bright); }
+    .cv-back { font-family:var(--font-m); font-size:.5rem; letter-spacing:2px; color:var(--text-muted); text-decoration:none; text-transform:uppercase; display:flex; align-items:center; gap:.4rem; transition:color .3s; }
+    .cv-back:hover { color:var(--royal-bright); }
+    .cv-back svg { width:12px; height:12px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; }
+    .cv-nav-actions { display:flex; gap:.8rem; }
+    .cv-btn { font-family:var(--font-m); font-size:.5rem; letter-spacing:1.5px; text-transform:uppercase; padding:.5rem 1.1rem; border-radius:99px; text-decoration:none; display:flex; align-items:center; gap:.4rem; transition:all .35s var(--spring); cursor:pointer; border:none; }
+    .cv-btn-ghost { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); color:var(--text-muted); backdrop-filter:blur(10px); }
+    .cv-btn-ghost:hover { border-color:var(--royal-bright); color:var(--royal-bright); }
+    .cv-btn-primary { background:var(--royal-dim); border:1px solid rgba(59,126,248,0.4); color:var(--royal-bright); }
+    .cv-btn-primary:hover { background:rgba(26,69,200,0.25); }
+    .cv-btn svg { width:12px; height:12px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; }
+
+    /* Layout */
+    .cv-wrap { position:relative; z-index:1; max-width:1100px; margin:0 auto; padding:4rem 5% 6rem; }
+
+    /* Header */
+    .cv-header {
+      display:grid; grid-template-columns:auto 1fr; gap:3rem; align-items:center;
+      margin-bottom:3.5rem; padding-bottom:3rem;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .cv-photo-wrap { position:relative; }
+    .cv-photo {
+      width:130px; height:130px; border-radius:50%;
+      object-fit:cover; object-position:center center;
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5), 0 0 0 5px rgba(255,255,255,0.02);
+      display:block;
+      transition: transform 0.5s var(--spring);
+    }
+    .cv-photo:hover { transform: scale(1.05); }
+    }
+    .cv-photo-ring {
+      position:absolute; inset:-10px; border-radius:50%;
+      border:1px solid rgba(59,126,248,0.12);
+      animation:ringRotate 20s linear infinite;
+    }
+    @keyframes ringRotate { from{transform:rotate(0)} to{transform:rotate(360deg)} }
+    .cv-name { font-family:var(--font-d); font-size:clamp(1.8rem,3vw,2.8rem); font-weight:400; letter-spacing:-0.5px; line-height:1.05; }
+    .cv-name em { color:var(--royal-bright); font-style:italic; font-weight:700; }
+    .cv-role-badge {
+      display:inline-flex; align-items:center; gap:.5rem; margin:.7rem 0 1.2rem;
+      font-family:var(--font-m); font-size:.52rem; letter-spacing:2.5px; text-transform:uppercase;
+      color:var(--royal-bright); border:1px solid rgba(59,126,248,0.3); padding:.35rem .9rem; border-radius:99px;
+      background:rgba(59,126,248,0.06);
+    }
+    .cv-contact-row { display:flex; flex-wrap:wrap; gap:12px; }
+    .cv-contact-badge {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        padding: 6px 14px;
+        border-radius: 99px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-family: var(--font-m);
+        font-size: 0.52rem;
+        letter-spacing: 1px;
+        color: var(--text-muted);
+        transition: all 0.3s;
+    }
+    .cv-contact-badge i { color: var(--royal-bright); font-size: 0.6rem; }
+    .cv-contact-badge a { color: inherit; text-decoration: none; }
+    .cv-contact-badge:hover { border-color: var(--royal-bright); background: var(--royal-dim); transform: scale(1.05); }
+
+    /* Grid layout */
+    .cv-body { display:grid; grid-template-columns:1fr 1.6fr; gap:2rem; align-items:start; }
+    @media(max-width:800px) { .cv-body { grid-template-columns:1fr; } .cv-header { grid-template-columns:1fr; text-align:center; } .cv-photo-wrap { margin:0 auto; } .cv-contact-row { justify-content:center; } }
+
+    /* Glass card */
+    .cv-card {
+      background:var(--glass-bg);
+      backdrop-filter:blur(32px) saturate(180%);
+      -webkit-backdrop-filter:blur(32px) saturate(180%);
+      border-radius:16px;
+      border:1px solid var(--glass-border);
+      box-shadow:var(--glass-shadow);
+      padding:1.8rem;
+      position:relative; overflow:hidden;
+      margin-bottom:1.5rem;
+    }
+    .cv-card::before {
+      content:''; position:absolute; inset:0;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+      background-size:160px 160px; opacity:.45; mix-blend-mode:overlay; pointer-events:none;
+    }
+    .cv-card-content { position:relative; z-index:1; }
+
+    /* Section label */
+    .cv-section-label {
+      font-family:var(--font-m); font-size:.48rem; letter-spacing:3px; text-transform:uppercase;
+      color:var(--royal-bright); margin-bottom:1.2rem; display:flex; align-items:center; gap:.6rem;
+    }
+    .cv-section-label::after { content:''; flex:1; height:1px; background:linear-gradient(to right,rgba(59,126,248,0.3),transparent); }
+
+    /* About */
+    .cv-about-text { font-size:.88rem; line-height:1.85; color:var(--text-muted); }
+    .cv-about-text strong { color:var(--text); font-weight:500; }
+
+    /* Timeline items */
+    .cv-timeline { display:flex; flex-direction:column; gap:1.4rem; }
+    .cv-titem { display:grid; grid-template-columns:auto 1fr; gap:.8rem; }
+    .cv-tline { display:flex; flex-direction:column; align-items:center; gap:0; padding-top:3px; }
+    .cv-tline-dot { width:8px; height:8px; border-radius:50%; background:var(--royal-bright); flex-shrink:0; box-shadow:0 0 8px rgba(59,126,248,0.5); }
+    .cv-tline-bar { width:1px; flex:1; background:linear-gradient(to bottom,rgba(59,126,248,0.3),transparent); min-height:24px; }
+    .cv-ttitle { font-family:var(--font-d); font-size:.9rem; font-weight:700; margin-bottom:.15rem; }
+    .cv-tsub { font-family:var(--font-m); font-size:.5rem; letter-spacing:1.5px; color:var(--royal-bright); text-transform:uppercase; margin-bottom:.3rem; }
+    .cv-tdesc { font-size:.82rem; color:var(--text-muted); line-height:1.7; }
+    .cv-tdate { font-family:var(--font-m); font-size:.48rem; letter-spacing:1px; color:var(--text-dim); margin-top:.2rem; }
+
+    /* Skills */
+    .cv-skills-grid { display:flex; flex-direction:column; gap:.9rem; }
+    .cv-skill-name { font-family:var(--font-m); font-size:.52rem; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-muted); margin-bottom:.3rem; display:flex; justify-content:space-between; }
+    .cv-skill-name span { color:var(--royal-bright); }
+    .cv-skill-bar { height:2px; background:rgba(255,255,255,0.07); border-radius:99px; overflow:hidden; }
+    .cv-skill-fill { height:100%; border-radius:99px; background:linear-gradient(90deg,var(--royal) 0%,var(--royal-bright) 100%); box-shadow:0 0 8px rgba(59,126,248,0.5); width:0; transition:width 1.4s var(--spring); }
+    [data-theme="light"] .cv-skill-bar { background:rgba(26,69,200,0.12); }
+
+    /* Soft skills pills */
+    .cv-pills { display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.8rem; }
+    .cv-pill { font-family:var(--font-m); font-size:.48rem; letter-spacing:1.5px; text-transform:uppercase; padding:.3rem .75rem; border-radius:99px; border:1px solid rgba(59,126,248,0.25); color:var(--text-muted); background:rgba(59,126,248,0.05); }
+
+    /* Projects grid */
+    .cv-projects { display:flex; flex-direction:column; gap:.9rem; }
+    .cv-project-item {
+      display:flex; align-items:flex-start; gap:1rem;
+      padding:.9rem 1rem; border-radius:10px;
+      background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05);
+      transition:border-color .3s, background .3s;
+    }
+    .cv-project-item:hover { border-color:rgba(59,126,248,0.2); background:rgba(59,126,248,0.03); }
+    .cv-project-thumb {
+      width:56px; height:40px; border-radius:6px; overflow:hidden; flex-shrink:0;
+      background:rgba(59,126,248,0.1); border:1px solid rgba(59,126,248,0.15);
+    }
+    .cv-project-thumb img { width:100%; height:100%; object-fit:cover; }
+    .cv-project-title { font-family:var(--font-d); font-size:.85rem; font-weight:700; margin-bottom:.15rem; }
+    .cv-project-role { font-family:var(--font-m); font-size:.48rem; letter-spacing:1.5px; color:var(--royal-bright); text-transform:uppercase; }
+    .cv-project-client { font-size:.78rem; color:var(--text-dim); margin-top:.1rem; }
+
+    /* ─── Inter 600 + tamanhos maiores para legibilidade ─── */
+    .cv-role-badge,
+    .cv-section-label,
+    .cv-tsub,
+    .cv-tdate,
+    .cv-skill-name,
+    .cv-pill,
+    .cv-project-role,
+    .cv-back,
+    .cv-btn,
+    .cv-contact-badge {
+      font-family: 'Inter', sans-serif !important;
+      font-weight: 600 !important;
+    }
+    .cv-role-badge  { font-size: 0.72rem !important; }
+    .cv-section-label { font-size: 0.68rem !important; }
+    .cv-tsub        { font-size: 0.68rem !important; }
+    .cv-tdate       { font-size: 0.65rem !important; }
+    .cv-skill-name  { font-size: 0.68rem !important; }
+    .cv-pill        { font-size: 0.65rem !important; }
+    .cv-project-role { font-size: 0.65rem !important; }
+    .cv-back, .cv-btn { font-size: 0.65rem !important; }
+    .cv-contact-badge { font-size: 0.65rem !important; }
+
+    /* Print button */
+    @media print {
+      @page { margin: 0; size: auto; }
+      body { 
+        background: #01060f !important; 
+        color: #f0f4ff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .cv-nav, .ambient, #cursor { display:none !important; }
+      .cv-card { background: rgba(255,255,255,0.03) !important; border:1px solid rgba(255,255,255,0.1) !important; }
+      .cv-wrap { width: 100% !important; max-width: none !important; margin: 0 !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient a1"></div>
+  <div class="ambient a2"></div>
+  
+  <!-- CUSTOM CURSOR -->
+  <div id="cursor">
+    <div class="cursor-dot"></div>
+    <div class="cursor-ring"></div>
+  </div>
+
+  <!-- NAV -->
+  <nav class="cv-nav">
+    <div class="cv-nav-left">
+      <a href="index.html" class="cv-logo">TB<span>.</span>RAW</a>
+      <a href="index.html" class="cv-back">
+        <svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        Início
+      </a>
+    </div>
+    <div class="cv-nav-actions">
+      <button class="cv-btn cv-btn-ghost" id="theme-toggle-cv">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
+        Tema
+      </button>
+      <button class="cv-btn cv-btn-primary" onclick="window.print()">
+        <i class="fas fa-download" style="margin-right: 8px;"></i>
+        BAIXAR CURRÍCULO
+      </button>
+    </div>
+  </nav>
+
+  <div class="cv-wrap">
+
+    <!-- HEADER -->
+    <div class="cv-header">
+      <div class="cv-photo-wrap">
+        <div class="cv-photo-ring"></div>
+        <img src="DSC07066.jpg.jpeg" alt="THIAGO BANDEIRA" class="cv-photo" onerror="this.src='https://live.staticflickr.com/65535/55207752369_448407b7d9_b.jpg'" />
+      </div>
+      <div>
+        <h1 class="cv-name">THIAGO <em>BANDEIRA</em></h1>
+        <div class="cv-role-badge">
+          DIRETOR DE FOTOGRAFIA &bull; PRODUTOR AUDIOVISUAL
+        </div>
+        <div class="cv-contact-row">
+          <div class="cv-contact-badge">
+            <i class="fas fa-phone"></i>
+            <a href="tel:+5527997475747">(27) 99747-5747</a>
+          </div>
+          <div class="cv-contact-badge">
+            <i class="fab fa-instagram"></i>
+            <a href="https://instagram.com/thiagoo_bandeira" target="_blank">@thiagoo_bandeira</a>
+          </div>
+          <div class="cv-contact-badge">
+            <i class="fab fa-linkedin"></i>
+            <a href="https://linkedin.com/in/thiago-bandeira-0956a0301/" target="_blank">thiago-bandeira</a>
+          </div>
+          <div class="cv-contact-badge">
+            <i class="fas fa-map-marker-alt"></i>
+            <span>Eng. Coelho – SP · ES</span>
+          </div>
+          <div class="cv-contact-badge">
+            <i class="fas fa-birthday-cake"></i>
+            <span>21/02/2002 · 23 anos</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cv-body">
+      <!-- LEFT COLUMN -->
+      <div class="cv-left">
+
+        <!-- SOBRE -->
+        <div class="cv-card">
+          <div class="cv-card-content">
+            <div class="cv-section-label">Sobre</div>
+            <p class="cv-about-text">
+              Filmmaker e <strong>Diretor de Fotografia</strong> com paixão por narrativas visuais de alto impacto.
+              Natural do Espírito Santo, atualmente estudando <strong>Rádio e Televisão no UNASP — Engenheiro Coelho</strong>.
+              Atua nas áreas de direção, produção e operação de câmera, transformando ideias em experiências
+              visuais que conectam e impactam. Acredita que o sucesso é fruto de persistência diária e
+              paixão genuína pelo audiovisual.
+            </p>
+          </div>
+        </div>
+
+        <!-- FORMAÇÃO -->
+        <div class="cv-card">
+          <div class="cv-card-content">
+            <div class="cv-section-label">Formação</div>
+            <div class="cv-timeline">
+              <div class="cv-titem">
+                <div class="cv-tline"><div class="cv-tline-dot"></div><div class="cv-tline-bar"></div></div>
+                <div>
+                  <div class="cv-ttitle">Rádio e Televisão</div>
+                  <div class="cv-tsub">UNASP — Engenheiro Coelho, SP</div>
+                  <div class="cv-tdesc">Cursando — Graduação em produção audiovisual, fotografia, edição e comunicação.</div>
+                  <div class="cv-tdate">2023 · Em andamento</div>
+                </div>
+              </div>
+              <div class="cv-titem">
+                <div class="cv-tline"><div class="cv-tline-dot"></div><div class="cv-tline-bar"></div></div>
+                <div>
+                  <div class="cv-ttitle">Ensino Médio Completo</div>
+                  <div class="cv-tsub">Teófilo Paulino — ES</div>
+                  <div class="cv-tdate">Concluído</div>
+                </div>
+              </div>
+              <div class="cv-titem">
+                <div class="cv-tline"><div class="cv-tline-dot"></div><div class="cv-tline-bar"></div></div>
+                <div>
+                  <div class="cv-ttitle">Informática Básica e Intermediária</div>
+                  <div class="cv-tsub">CDI</div>
+                  <div class="cv-tdesc">Windows, Word, PowerPoint, Excel, Internet. Montagem e manutenção de computadores.</div>
+                </div>
+              </div>
+              <div class="cv-titem">
+                <div class="cv-tline"><div class="cv-tline-dot"></div></div>
+                <div>
+                  <div class="cv-ttitle">Programação Básica em C</div>
+                  <div class="cv-tsub">FAESA</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- HABILIDADES TÉCNICAS -->
+        <div class="cv-card" id="cv-skills-card">
+          <div class="cv-card-content">
+            <div class="cv-section-label">Habilidades Técnicas</div>
+            <div class="cv-skills-grid">
+              <div>
+                <div class="cv-skill-name">Direção de Fotografia <span>89%</span></div>
+                <div class="cv-skill-bar"><div class="cv-skill-fill" data-pct="89"></div></div>
+              </div>
+              <div>
+                <div class="cv-skill-name">Captação de Imagem <span>93%</span></div>
+                <div class="cv-skill-bar"><div class="cv-skill-fill" data-pct="93"></div></div>
+              </div>
+              <div>
+                <div class="cv-skill-name">Iluminação (Gaffer) <span>91%</span></div>
+                <div class="cv-skill-bar"><div class="cv-skill-fill" data-pct="91"></div></div>
+              </div>
+              <div>
+                <div class="cv-skill-name">Produção Audiovisual <span>90%</span></div>
+                <div class="cv-skill-bar"><div class="cv-skill-fill" data-pct="90"></div></div>
+              </div>
+
+              <div>
+                <div class="cv-skill-name">Captação de Áudio <span>82%</span></div>
+                <div class="cv-skill-bar"><div class="cv-skill-fill" data-pct="82"></div></div>
+              </div>
+              <div>
+                <div class="cv-skill-name">Documentário <span>84%</span></div>
+                <div class="cv-skill-bar"><div class="cv-skill-fill" data-pct="84"></div></div>
+              </div>
+            </div>
+            <div class="cv-section-label" style="margin-top:1.4rem">Competências</div>
+            <div class="cv-pills">
+              <span class="cv-pill">Trabalho em Equipe</span>
+              <span class="cv-pill">Liderança</span>
+              <span class="cv-pill">Proatividade</span>
+              <span class="cv-pill">Iniciativa</span>
+              <span class="cv-pill">Criatividade</span>
+              <span class="cv-pill">Eventos</span>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /LEFT -->
+
+      <!-- RIGHT COLUMN -->
+      <div class="cv-right">
+
+        <!-- EXPERIÊNCIA PROFISSIONAL -->
+        <div class="cv-card">
+          <div class="cv-card-content">
+            <div class="cv-section-label">Experiência Profissional</div>
+            <div class="cv-timeline">
+              <div class="cv-titem">
+                <div class="cv-tline"><div class="cv-tline-dot"></div><div class="cv-tline-bar"></div></div>
+                <div>
+                  <div class="cv-ttitle">Diretor de Fotografia / Filmmaker</div>
+                  <div class="cv-tsub">Freelancer · Audiovisual</div>
+                  <div class="cv-tdesc">Atuação em videoclipes, documentários, curtas-metragens, reality shows e produções ao vivo. Direção de fotografia, operação de câmera, iluminação e produção técnica para clientes e projetos acadêmicos.</div>
+                  <div class="cv-tdate">2022 · Presente</div>
+                </div>
+              </div>
+              <div class="cv-titem">
+                <div class="cv-tline"><div class="cv-tline-dot"></div><div class="cv-tline-bar"></div></div>
+                <div>
+                  <div class="cv-ttitle">Diretor da Agência de Publicidade</div>
+                  <div class="cv-tsub">Agência RTV UNASP EC</div>
+                  <div class="cv-tdesc">Direção de agência, direção de fotografia e operação de câmera. Produções para clientes externos como Documentário WELL.</div>
+                  <div class="cv-tdate">2024</div>
+                </div>
+              </div>
+              <div class="cv-titem">
+                <div class="cv-tline"><div class="cv-tline-dot"></div></div>
+                <div>
+                  <div class="cv-ttitle">Gerente Administrativo / Técnico Operacional</div>
+                  <div class="cv-tsub">Empresa de Cotação e Licitação</div>
+                  <div class="cv-tdesc">Contato direto com clientes, fornecedores e logísticas. Planos de trabalho e organização interna da empresa.</div>
+                  <div class="cv-tdate">18 meses</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PROJETOS SELECIONADOS -->
+        <div class="cv-card">
+          <div class="cv-card-content">
+            <div class="cv-section-label">Projetos Selecionados</div>
+            <div class="cv-projects">
+              <div class="cv-project-item">
+                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/efa_PSKMHLk/mqdefault.jpg" alt="O Oráculo" loading="lazy"></div>
+                <div>
+                  <div class="cv-project-title">O Oráculo</div>
+                  <div class="cv-project-role">Diretor · Dir. de Fotografia</div>
+                  <div class="cv-project-client">Reality Show · Califórnia Dreams</div>
+                </div>
+              </div>
+              <div class="cv-project-item">
+                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/D8IE251bp_E/mqdefault.jpg" alt="WELL" loading="lazy"></div>
+                <div>
+                  <div class="cv-project-title">Documentário WELL</div>
+                  <div class="cv-project-role">Dir. Agência · Dir. Fotografia · Câmera</div>
+                  <div class="cv-project-client">Branded Documentary · WELL</div>
+                </div>
+              </div>
+              <div class="cv-project-item">
+                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/Mul19Lfeo7Y/mqdefault.jpg" alt="Bárbara" loading="lazy"></div>
+                <div>
+                  <div class="cv-project-title">Bárbara</div>
+                  <div class="cv-project-role">Diretor · Câmera · Produtor Técnico · Ator</div>
+                  <div class="cv-project-client">Curta-Metragem · Califórnia Dreams · 2024</div>
+                </div>
+              </div>
+              <div class="cv-project-item">
+                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/NwesZCYbSx0/mqdefault.jpg" alt="Cicatrizes" loading="lazy"></div>
+                <div>
+                  <div class="cv-project-title">Cicatrizes</div>
+                  <div class="cv-project-role">Câmera · Dir. Produção · Iluminação</div>
+                  <div class="cv-project-client">Documentário · Califórnia Dreams · 2024</div>
+                </div>
+              </div>
+              <div class="cv-project-item">
+                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/WeBx8Ewkm4I/mqdefault.jpg" alt="Meu Respirar" loading="lazy"></div>
+                <div>
+                  <div class="cv-project-title">Meu Respirar</div>
+                  <div class="cv-project-role">Dir. de Fotografia · Câmera</div>
+                  <div class="cv-project-client">Videoclipe · Gabriella Stehling</div>
+                </div>
+              </div>
+              <div class="cv-project-item">
+                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/D43qNYNIIOA/mqdefault.jpg" alt="O Melhor de Mim" loading="lazy"></div>
+                <div>
+                  <div class="cv-project-title">O Melhor de Mim</div>
+                  <div class="cv-project-role">Dir. Fotografia · Produtor Técnico</div>
+                  <div class="cv-project-client">Videoclipe · Grupo Versos</div>
+                </div>
+              </div>
+              <div class="cv-project-item">
+                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/DAglqbQTK4c/mqdefault.jpg" alt="Lembra" loading="lazy"></div>
+                <div>
+                  <div class="cv-project-title">Lembra</div>
+                  <div class="cv-project-role">Produtor</div>
+                  <div class="cv-project-client">Videoclipe · Kati Carvalho feat. Communion</div>
+                </div>
+              </div>
+              <div class="cv-project-item">
+                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/rQlMRuub6vo/mqdefault.jpg" alt="Jeová Jireh" loading="lazy"></div>
+                <div>
+                  <div class="cv-project-title">Jeová Jireh</div>
+                  <div class="cv-project-role">Dir. de Fotografia · Câmera</div>
+                  <div class="cv-project-client">Videoclipe · Gabriella Stehling</div>
+                </div>
+              </div>
+              <div class="cv-project-item">
+                <div class="cv-project-thumb"><img src="https://img.youtube.com/vi/Mdkzm7v2vc8/mqdefault.jpg" alt="VT Engenharia" loading="lazy"></div>
+                <div>
+                  <div class="cv-project-title">VT Engenharia</div>
+                  <div class="cv-project-role">Produtor · Operador de Câmera · Captação de Áudio</div>
+                  <div class="cv-project-client">Produção Corporativa</div>
+                </div>
+              </div>
+              <div class="cv-project-item">
+                <div class="cv-project-thumb" style="display:flex;align-items:center;justify-content:center;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(59,126,248,0.5)" stroke-width="1.5"><rect x="2" y="7" width="20" height="15" rx="2"/><polyline points="17 2 12 7 7 2"/></svg></div>
+                <div>
+                  <div class="cv-project-title">Formaturas UNASP 2023 &amp; 2025</div>
+                  <div class="cv-project-role">Diretor de Imagem e Corte</div>
+                  <div class="cv-project-client">Produção ao Vivo · UNASP EC</div>
+                </div>
+              </div>
+              <div class="cv-project-item">
+                <div class="cv-project-thumb" style="display:flex;align-items:center;justify-content:center;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(59,126,248,0.5)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg></div>
+                <div>
+                  <div class="cv-project-title">+30 Cultos &amp; Eventos UNASP EC</div>
+                  <div class="cv-project-role">Operador de Câmera · Dir. de Fotografia</div>
+                  <div class="cv-project-client">Produção ao Vivo · Recitais · Orquestras · Coral</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /RIGHT -->
+    </div>
+
+  </div><!-- /cv-wrap -->
+
+  <script>
+    // Theme sync
+    const t = localStorage.getItem('tb-theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', t);
+    document.getElementById('theme-toggle-cv')?.addEventListener('click', () => {
+      const cur = document.documentElement.getAttribute('data-theme');
+      const next = cur === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('tb-theme', next);
+    });
+
+    // Animate skills on scroll
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (!e.isIntersecting) return;
+        e.target.querySelectorAll('.cv-skill-fill').forEach(b => {
+          b.style.width = b.dataset.pct + '%';
+        });
+        obs.unobserve(e.target);
+      });
+    }, { threshold: 0.2 });
+    const card = document.getElementById('cv-skills-card');
+    if (card) obs.observe(card);
+  </script>
+</body>
+</html>

@@ -100,61 +100,44 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     /* ─────────────────────────────────────────────
-    1. CUSTOM CURSOR (HUD Mira 1:1 + Ring Lerp)
+    1. CUSTOM CURSOR (Disable on Mobile/Touch)
     ───────────────────────────────────────────── */
     const cursor = document.getElementById('cursor');
     const ring = document.querySelector('.cursor-ring');
     const dot = document.querySelector('.cursor-dot');
 
-    let mouseX = -100, mouseY = -100;
-    let ringX  = -100, ringY  = -100;
+    if (window.innerWidth > 1024 && cursor) {
+        let mouseX = -100, mouseY = -100;
+        
+        document.addEventListener('mousemove', e => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
 
-    document.addEventListener('mousemove', e => {
-        mouseX = e.clientX;
-        mouseY = e.clientY;
+            const posTransition = `translate3d(${mouseX}px, ${mouseY}px, 0) translate(-50%, -50%)`;
+            if (dot) dot.style.transform = posTransition;
+            if (ring) ring.style.transform = posTransition;
 
-        // Mira (Dot) e Anel (Ring) seguem 1:1 instantaneamente com correção de centralização (-50%)
-        const posTransition = `translate3d(${mouseX}px, ${mouseY}px, 0) translate(-50%, -50%)`;
-        if (dot) {
-            dot.style.transform = posTransition;
-        }
-        if (ring) {
-            ring.style.transform = posTransition;
-        }
-
-        // Liquid glass specular tracking on interactive elements - Otimizado: apenas se estiver visível
-        const interactiveElements = document.querySelectorAll('.pcard:hover, .contact-glass-form:hover, .social-pill:hover, .btn-cv-premium:hover');
-        interactiveElements.forEach(el => {
-            const r = el.getBoundingClientRect();
-            el.style.setProperty('--mx', `${((e.clientX - r.left) / r.width  * 100).toFixed(1)}%`);
-            el.style.setProperty('--my', `${((e.clientY - r.top)  / r.height * 100).toFixed(1)}%`);
+            const interactiveElements = document.querySelectorAll('.pcard:hover, .contact-glass-form:hover, .social-pill:hover, .btn-cv-premium:hover');
+            interactiveElements.forEach(el => {
+                const r = el.getBoundingClientRect();
+                el.style.setProperty('--mx', `${((e.clientX - r.left) / r.width  * 100).toFixed(1)}%`);
+                el.style.setProperty('--my', `${((e.clientY - r.top)  / r.height * 100).toFixed(1)}%`);
+            });
         });
-    });
 
-    document.querySelectorAll('a, button, .pcard, .gitem, .social-pill').forEach(el => {
-        el.addEventListener('mouseenter', () => document.body.classList.add('cursor-hover'));
-        el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-hover'));
-    });
-    document.addEventListener('mousedown', () => document.body.classList.add('cursor-click'));
-    document.addEventListener('mouseup',   () => document.body.classList.remove('cursor-click'));
-
-
-    // HERO SLIDESHOW REMOVED IN FAVOR OF CINEMATIC DEPTH LAYOUT
+        document.querySelectorAll('a, button, .pcard, .gitem, .social-pill').forEach(el => {
+            el.addEventListener('mouseenter', () => document.body.classList.add('cursor-hover'));
+            el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-hover'));
+        });
+        document.addEventListener('mousedown', () => document.body.classList.add('cursor-click'));
+        document.addEventListener('mouseup',   () => document.body.classList.remove('cursor-click'));
+    }
 
 
     /* ─────────────────────────────────────────────
-       3. REAL-TIME TIMECODE (viewfinder HUD)
+       3. REAL-TIME HUD (Simplified)
     ───────────────────────────────────────────── */
-    const timecodeEl = document.getElementById('realTimecode');
-    if (timecodeEl) {
-        const p = n => String(n).padStart(2, '0');
-        setInterval(() => {
-            const now = new Date();
-            const f = p(Math.floor((now.getMilliseconds() / 1000) * 24));
-            timecodeEl.textContent =
-                ` REC ${p(now.getHours())}:${p(now.getMinutes())}:${p(now.getSeconds())}:${f}`;
-        }, 40);
-    }
+    // No specific JS needed for the simplified blinking red dot
 
 
     /* ─────────────────────────────────────────────
@@ -177,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ───────────────────────────────────────────── */
     const navbar = document.getElementById('navbar');
     window.addEventListener('scroll', () => {
-        navbar.classList.toggle('scrolled', window.scrollY > 80);
+        if (navbar) navbar.classList.toggle('scrolled', window.scrollY > 80);
     }, { passive: true });
 
 
@@ -196,12 +179,16 @@ document.addEventListener('DOMContentLoaded', () => {
             videoIframe.src = `https://www.youtube.com/embed/${id}?autoplay=1&rel=0&modestbranding=1`;
             videoModal.classList.add('active');
             document.body.style.overflow = 'hidden';
+            if (window.innerWidth <= 768) {
+                // Focus on player
+                videoModal.scrollIntoView({ behavior: 'smooth' });
+            }
         });
     });
 
     const closeVideo = () => {
-        videoModal.classList.remove('active');
-        videoIframe.src = '';
+        videoModal?.classList.remove('active');
+        if (videoIframe) videoIframe.src = '';
         document.body.style.overflow = '';
     };
     closeBtn?.addEventListener('click', closeVideo);
@@ -209,31 +196,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     /* ─────────────────────────────────────────────
-       7. GALLERY — auto-scroll (CSS-driven)
-          Click opens image modal
+       7. PORTFOLIO FILTER LOGIC
     ───────────────────────────────────────────── */
-
-    /* ─────────────────────────────────────────────
-       8. GALLERY IMAGE MODAL — Functional Nav
-    ───────────────────────────────────────────── */
-    
-    // ─────────────────────────────────────────────
-    // PORTFOLIO FILTER LOGIC
-    // ─────────────────────────────────────────────
     const filterBtns = document.querySelectorAll('.filter-btn');
     const projectCards = document.querySelectorAll('.pcard-wrap');
 
     filterBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             const filter = btn.getAttribute('data-filter');
-
-            // Update UI
             filterBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
 
             projectCards.forEach(card => {
                 const category = card.getAttribute('data-category');
-                
                 if (filter === 'all' || category === filter) {
                     card.style.display = 'block';
                     setTimeout(() => {
@@ -251,30 +226,28 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    /* ─────────────────────────────────────────────
+       8. IMAGE MODAL
+    ───────────────────────────────────────────── */
     const imgModal     = document.getElementById('imageModal');
     const modalImg     = document.getElementById('modalImg');
     const closeImgBtn  = document.getElementById('closeImageModal');
     const imgPrev      = document.getElementById('imgPrev');
     const imgNext      = document.getElementById('imgNext');
     let currentImgIdx  = 0;
-    
-    // Filtramos apenas itens que não são clones do scroll infinito para evitar saltos
     const galleryItems = Array.from(document.querySelectorAll('.gitem:not([aria-hidden="true"])'));
 
     const updateModalImg = (idx) => {
         const item = galleryItems[idx];
-        if (!item) return;
+        if (!item || !modalImg) return;
         const img = item.querySelector('img');
         if (!img) return;
-        
-        // Adiciona um fade simples na troca
         modalImg.style.opacity = '0';
         setTimeout(() => {
             modalImg.src = img.src;
             modalImg.alt = img.alt;
             modalImg.style.opacity = '1';
         }, 150);
-        
         currentImgIdx = idx;
     };
 
@@ -293,46 +266,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     closeImgBtn?.addEventListener('click', closeImg);
     imgModal?.addEventListener('click', e => { if (e.target === imgModal) closeImg(); });
+    imgPrev?.addEventListener('click', e => { e.stopPropagation(); updateModalImg((currentImgIdx - 1 + galleryItems.length) % galleryItems.length); });
+    imgNext?.addEventListener('click', e => { e.stopPropagation(); updateModalImg((currentImgIdx + 1) % galleryItems.length); });
 
-    imgPrev?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        let nextIdx = currentImgIdx - 1;
-        if (nextIdx < 0) nextIdx = galleryItems.length - 1;
-        updateModalImg(nextIdx);
-    });
-
-    imgNext?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        let nextIdx = (currentImgIdx + 1) % galleryItems.length;
-        updateModalImg(nextIdx);
-    });
-
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeVideo(); closeImg(); } });
 
     /* ─────────────────────────────────────────────
-       9. ESC key closes any modal
-    ───────────────────────────────────────────── */
-    document.addEventListener('keydown', e => {
-        if (e.key === 'Escape') { closeVideo(); closeImg(); }
-    });
-
-
-    /* ─────────────────────────────────────────────
-       11. THEME TOGGLE (dark / light)
-    ───────────────────────────────────────────── */
-    const themeToggle = document.getElementById('theme-toggle');
-    const savedTheme  = localStorage.getItem('tb-theme') || 'dark';
-    document.documentElement.setAttribute('data-theme', savedTheme);
-
-    themeToggle?.addEventListener('click', () => {
-        const current = document.documentElement.getAttribute('data-theme');
-        const next    = current === 'dark' ? 'light' : 'dark';
-        document.documentElement.setAttribute('data-theme', next);
-        localStorage.setItem('tb-theme', next);
-    });
-
-
-    /* ─────────────────────────────────────────────
-       12. SKILLS BARS — animate on scroll entry
+       12. SKILLS BARS
     ───────────────────────────────────────────── */
     const skillsObs = new IntersectionObserver(entries => {
         entries.forEach(entry => {
@@ -350,7 +290,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     /* ─────────────────────────────────────────────
-       13. STATS COUNTER — intersection based
+       13. STATS COUNTER
     ───────────────────────────────────────────── */
     const statsSection = document.querySelector('.section-stats');
     const statsObs = new IntersectionObserver(entries => {
@@ -359,12 +299,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 const target = +num.getAttribute('data-target');
                 const duration = 2000;
                 const startTime = performance.now();
-                
                 function count(currentTime) {
                     const elapsed = currentTime - startTime;
                     const progress = Math.min(elapsed / duration, 1);
-                    const currentCount = Math.floor(progress * target);
-                    num.textContent = currentCount + (target > 5 ? '+' : '');
+                    num.textContent = Math.floor(progress * target) + (target > 5 ? '+' : '');
                     if (progress < 1) requestAnimationFrame(count);
                     else num.textContent = target + (target > 5 ? '+' : '');
                 }
@@ -386,7 +324,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const message = document.getElementById('message')?.value.trim() || '';
         const text    = `Olá Thiago! Meu nome é *${name}* (${email}).\n\n${message}`;
         window.open(`https://wa.me/5527997475747?text=${encodeURIComponent(text)}`, '_blank');
-
         const btn = e.target.querySelector('button[type="submit"]');
         if (btn) {
             const orig = btn.innerHTML;
@@ -396,4 +333,58 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    /* ─────────────────────────────────────────────
+       14. MOBILE BOTTOM NAV — Scroll Sync & Reveal
+    ───────────────────────────────────────────── */
+    const mobileNavItems = document.querySelectorAll('.mb-nav-item');
+    const sections = document.querySelectorAll('section[id]');
+    
+    // Improved Sync with active state detection
+    const syncMobileNav = () => {
+        if (window.innerWidth > 1024) return;
+        let current = '';
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop;
+            const sectionHeight = section.offsetHeight;
+            if (window.scrollY >= sectionTop - (sectionHeight / 3)) {
+                current = section.getAttribute('id');
+            }
+        });
+        
+        // Final fallback for bottom
+        if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 50) {
+            current = 'contato';
+        }
+
+        mobileNavItems.forEach(item => {
+            item.classList.remove('active');
+            if (item.getAttribute('href') === `#${current}`) {
+                item.classList.add('active');
+            }
+        });
+    };
+
+    // Scroll Reveal for Section Content (Mobile)
+    const sectionObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('section-visible');
+            }
+        });
+    }, { threshold: 0.15 });
+
+    sections.forEach(section => {
+        section.classList.add('mobile-reveal');
+        sectionObserver.observe(section);
+    });
+
+    window.addEventListener('scroll', syncMobileNav, { passive: true });
+    window.addEventListener('scroll', () => {
+        // Subtle parallax for hero img on mobile scroll
+        const heroImg = document.querySelector('.hero-main-img');
+        if (window.innerWidth <= 768 && heroImg) {
+            let scroll = window.scrollY;
+            heroImg.style.transform = `scale(1.1) translateY(${scroll * 0.15}px)`;
+        }
+    }, { passive: true });
 });
